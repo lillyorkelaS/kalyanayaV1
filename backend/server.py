@@ -1,89 +1,65 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+"""
+FastAPI reverse-proxy for Next.js API routes.
+
+This container's ingress sends /api/* to port 8001 (this FastAPI), and everything
+else to port 3000 (Next.js). The Kalyanaya app is Next.js full-stack, so we proxy
+/api/* back to the Next.js server on localhost:3000 where the catch-all
+`/api/[[...path]]/route.js` handler lives.
+"""
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
+import httpx
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import StreamingResponse
 
+NEXT_INTERNAL_URL = os.environ.get("NEXT_INTERNAL_URL", "http://localhost:3000")
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
 app = FastAPI()
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
-app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
+# A single shared client (HTTP/1.1 keepalive, generous timeouts for image uploads)
+client = httpx.AsyncClient(
+    base_url=NEXT_INTERNAL_URL,
+    timeout=httpx.Timeout(120.0, connect=10.0),
+    follow_redirects=False,
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+async def _shutdown():
+    await client.aclose()
+
+
+@app.get("/health")
+async def health():
+    return {"ok": True, "proxy": "next", "target": NEXT_INTERNAL_URL}
+
+
+HOP_BY_HOP = {
+    "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+    "te", "trailers", "transfer-encoding", "upgrade", "content-encoding",
+    "content-length", "host",
+}
+
+
+@app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+async def proxy_api(path: str, request: Request):
+    url = f"/api/{path}"
+    if request.url.query:
+        url = f"{url}?{request.url.query}"
+
+    headers = {k: v for k, v in request.headers.items() if k.lower() not in HOP_BY_HOP}
+    body = await request.body()
+
+    try:
+        upstream = await client.request(
+            request.method, url, content=body, headers=headers,
+        )
+    except httpx.ConnectError:
+        return Response("Upstream Next.js not reachable", status_code=502)
+
+    resp_headers = {k: v for k, v in upstream.headers.items() if k.lower() not in HOP_BY_HOP}
+    return Response(
+        content=upstream.content,
+        status_code=upstream.status_code,
+        headers=resp_headers,
+        media_type=upstream.headers.get("content-type"),
+    )
