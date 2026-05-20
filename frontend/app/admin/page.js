@@ -9,7 +9,7 @@ import {
   Plus, Search, LogOut, LayoutDashboard, Heart, Settings, Calendar, Users,
   Edit3, Trash2, ExternalLink, Eye, Copy, X, Image as ImageIcon, MapPin,
   Clock, ChevronRight, Download, Mail, Phone, MessageCircle, ChevronLeft,
-  GripVertical, Save, Inbox,
+  GripVertical, Save, Inbox, Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,54 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+
+const PLAN_OPTIONS = [
+  {
+    id: 'Essential',
+    price: '₹2,499',
+    summary: 'Single-template wedding site with RSVP and gallery basics.',
+    features: ['1 chosen template', 'Up to 100 guests', 'RSVP tracking', 'Photo gallery', '6 months hosting'],
+  },
+  {
+    id: 'Signature',
+    price: '₹4,999',
+    summary: 'Full premium wedding site for most paying couples.',
+    features: ['All 12 templates', 'Unlimited guests', 'Advanced RSVP', 'Password protection', '1 year hosting'],
+  },
+  {
+    id: 'Heirloom',
+    price: '₹7,000',
+    summary: 'White-glove site with custom domain and rich embeds.',
+    features: ['Everything in Signature', 'Custom domain', 'Video/music embeds', 'Gift registry link', '3 years hosting'],
+  },
+]
+
+function planRank(plan) {
+  return PLAN_OPTIONS.findIndex(p => p.id === plan)
+}
+
+function hasPlan(plan, required) {
+  return planRank(plan) >= planRank(required)
+}
+
+function sanitizePlanFields(form) {
+  const plan = form.plan || 'Signature'
+  const advancedSettings = { ...(form.advancedSettings || {}) }
+  const rsvpSettings = { ...(form.rsvpSettings || {}) }
+
+  if (!hasPlan(plan, 'Signature')) {
+    delete advancedSettings.password
+    delete rsvpSettings.guestLimit
+  }
+
+  if (!hasPlan(plan, 'Heirloom')) {
+    delete advancedSettings.giftRegistryLink
+    delete advancedSettings.musicEmbed
+    delete advancedSettings.customDomain
+  }
+
+  return { advancedSettings, rsvpSettings }
+}
 
 function authFetch(url, options = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('kal_token') : null
@@ -42,10 +90,12 @@ function fileToDataUri(file) {
 export default function AdminPage() {
   const router = useRouter()
   const [user, setUser] = useState(null)
-  const [view, setView] = useState('dashboard') // dashboard | weddings | new | edit | rsvps
+  const [view, setView] = useState('dashboard') // dashboard | weddings | previews | new | edit | rsvps | leads
+  const [editReturnView, setEditReturnView] = useState('weddings')
   const [editingId, setEditingId] = useState(null)
   const [rsvpWedding, setRsvpWedding] = useState(null)
   const [weddings, setWeddings] = useState([])
+  const [previewWeddings, setPreviewWeddings] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -62,13 +112,18 @@ export default function AdminPage() {
   const loadWeddings = useCallback(async () => {
     setLoading(true)
     try {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams({ isDemo: 'false' })
       if (search) params.set('q', search)
       if (statusFilter !== 'all') params.set('status', statusFilter)
-      const res = await authFetch(`/api/weddings?${params.toString()}`)
-      if (res.status === 401) { localStorage.clear(); router.replace('/admin/login'); return }
-      const data = await res.json()
-      setWeddings(data.weddings || [])
+      const [realRes, previewRes] = await Promise.all([
+        authFetch(`/api/weddings?${params.toString()}`),
+        authFetch('/api/weddings?isDemo=true'),
+      ])
+      if (realRes.status === 401 || previewRes.status === 401) { localStorage.clear(); router.replace('/admin/login'); return }
+      const realData = await realRes.json()
+      const previewData = await previewRes.json()
+      setWeddings(realData.weddings || [])
+      setPreviewWeddings(previewData.weddings || [])
     } catch (e) {
       toast.error('Failed to load weddings')
     } finally {
@@ -102,11 +157,25 @@ export default function AdminPage() {
     else toast.error('Failed to update')
   }
 
+  async function duplicatePreview(w) {
+    const res = await authFetch(`/api/weddings/${w.id}/duplicate`, { method: 'POST' })
+    const data = await res.json()
+    if (!res.ok) { toast.error(data.error || 'Failed to duplicate preview'); return }
+    toast.success('Client wedding draft created')
+    setEditingId(data.wedding.id)
+    setEditReturnView('weddings')
+    setView('edit')
+    loadWeddings()
+  }
+
+  const realWeddings = weddings
+
   const stats = {
-    total: weddings.length,
-    published: weddings.filter(w => w.status === 'published').length,
-    draft: weddings.filter(w => w.status === 'draft').length,
-    rsvps: weddings.reduce((sum, w) => sum + (w.rsvpCount || 0), 0),
+    total: realWeddings.length,
+    published: realWeddings.filter(w => w.status === 'published').length,
+    draft: realWeddings.filter(w => w.status === 'draft').length,
+    rsvps: realWeddings.reduce((sum, w) => sum + (w.rsvpCount || 0), 0),
+    previews: previewWeddings.length,
   }
 
   if (!user) return <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">Loading…</div>
@@ -121,7 +190,8 @@ export default function AdminPage() {
         </div>
         <nav className="flex-1 p-4 space-y-1">
           <NavItem icon={LayoutDashboard} label="Dashboard" active={view === 'dashboard'} onClick={() => setView('dashboard')} />
-          <NavItem icon={Heart} label="Weddings" active={view === 'weddings' || view === 'new' || view === 'edit'} onClick={() => setView('weddings')} />
+          <NavItem icon={Heart} label="Weddings" active={view === 'weddings' || view === 'new' || (view === 'edit' && editReturnView === 'weddings')} onClick={() => setView('weddings')} />
+          <NavItem icon={Sparkles} label="Previews" active={view === 'previews' || (view === 'edit' && editReturnView === 'previews')} onClick={() => setView('previews')} />
           <NavItem icon={Inbox} label="Leads" active={view === 'leads'} onClick={() => setView('leads')} />
         </nav>
         <div className="p-4 border-t border-[#FDFBF7]/10">
@@ -136,26 +206,35 @@ export default function AdminPage() {
       <main className="flex-1 overflow-x-hidden">
         <div className="max-w-7xl mx-auto p-8 md:p-12">
           {view === 'dashboard' && (
-            <DashboardView user={user} stats={stats} weddings={weddings} onNew={() => setView('new')} onViewAll={() => setView('weddings')} onEdit={(id) => { setEditingId(id); setView('edit') }} />
+            <DashboardView user={user} stats={stats} weddings={realWeddings} onNew={() => { setEditReturnView('weddings'); setView('new') }} onViewAll={() => setView('weddings')} onEdit={(id) => { setEditingId(id); setEditReturnView('weddings'); setView('edit') }} />
           )}
           {view === 'weddings' && (
             <WeddingsList
-              weddings={weddings}
+              weddings={displayedRealWeddings}
               loading={loading}
               search={search} setSearch={setSearch}
               statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-              onNew={() => setView('new')}
-              onEdit={(id) => { setEditingId(id); setView('edit') }}
+              onNew={() => { setEditReturnView('weddings'); setView('new') }}
+              onEdit={(id) => { setEditingId(id); setEditReturnView('weddings'); setView('edit') }}
               onDelete={deleteWedding}
               onTogglePublish={togglePublish}
               onViewRsvps={(w) => { setRsvpWedding(w); setView('rsvps') }}
             />
           )}
+          {view === 'previews' && (
+            <PreviewsPanel
+              previews={previewWeddings}
+              loading={loading}
+              onEdit={(id) => { setEditingId(id); setEditReturnView('previews'); setView('edit') }}
+              onDuplicate={duplicatePreview}
+              onTogglePublish={togglePublish}
+            />
+          )}
           {(view === 'new' || view === 'edit') && (
             <WeddingForm
               id={view === 'edit' ? editingId : null}
-              onCancel={() => setView('weddings')}
-              onSaved={() => { setView('weddings'); loadWeddings() }}
+              onCancel={() => setView(editReturnView)}
+              onSaved={() => { setView(editReturnView); loadWeddings() }}
             />
           )}
           {view === 'rsvps' && rsvpWedding && (
@@ -244,6 +323,9 @@ function MiniCard({ w, onEdit }) {
         <Badge className={`absolute top-3 left-3 rounded-none text-[10px] tracking-widest uppercase ${w.status === 'published' ? 'bg-[#3A3226] text-[#FDFBF7]' : 'bg-[#C9B896] text-[#3A3226]'}`}>
           {w.status}
         </Badge>
+        <Badge className="absolute top-3 right-3 rounded-none text-[10px] tracking-widest uppercase bg-white/90 text-[#3A3226]">
+          {w.plan || 'Signature'}
+        </Badge>
       </div>
       <div className="p-5">
         <div className="font-serif text-xl text-[#3A3226]">{w.brideName} <span className="italic text-[#8B7355]">&amp;</span> {w.groomName}</div>
@@ -298,6 +380,7 @@ function WeddingsList({ weddings, loading, search, setSearch, statusFilter, setS
                   <div className="flex items-center gap-3 flex-wrap">
                     <h3 className="font-serif text-xl text-[#3A3226]">{w.brideName} <span className="italic text-[#8B7355]">&amp;</span> {w.groomName}</h3>
                     <Badge className={`rounded-none text-[10px] uppercase tracking-widest ${w.status === 'published' ? 'bg-[#3A3226] text-[#FDFBF7]' : 'bg-[#C9B896] text-[#3A3226]'}`}>{w.status}</Badge>
+                    <Badge className="rounded-none text-[10px] uppercase tracking-widest bg-white text-[#3A3226] border border-[#C9B896]">{w.plan || 'Signature'}</Badge>
                   </div>
                   <div className="text-xs text-[#8B7355] mt-1">{new Date(w.weddingDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} · /{w.slug} · {w.rsvpCount || 0} RSVPs</div>
                 </div>
@@ -320,18 +403,66 @@ function WeddingsList({ weddings, loading, search, setSearch, statusFilter, setS
   )
 }
 
+function PreviewsPanel({ previews, loading, onEdit, onDuplicate, onTogglePublish }) {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-2">Template demos</div>
+          <h1 className="font-serif font-light text-5xl text-[#3A3226]">Preview library</h1>
+          <p className="text-[#3A3226]/65 mt-3 max-w-2xl">These demo weddings power public template previews and stay separate from paying client weddings.</p>
+        </div>
+        <Badge className="rounded-none bg-[#3A3226] text-[#FDFBF7] tracking-widest uppercase">{previews.length} previews</Badge>
+      </div>
+
+      {loading ? <div className="text-center py-16 text-[#8B7355]">Loading…</div> : previews.length === 0 ? (
+        <div className="border border-dashed border-[#C9B896] p-16 text-center text-[#3A3226]/70">No preview weddings found.</div>
+      ) : (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {previews.map(w => {
+            const publicUrl = `${baseUrl}/wedding/${w.slug}`
+            return (
+              <div key={w.id} className="border border-[#C9B896]/50 bg-white/40 overflow-hidden">
+                <div className="aspect-[4/3] bg-[#F5EFE4] relative overflow-hidden">
+                  {w.heroImage?.url ? <img src={w.heroImage.url} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full flex items-center justify-center text-[#C9B896]"><ImageIcon size={28} /></div>}
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <Badge className="rounded-none bg-[#C9B896] text-[#3A3226] text-[10px] tracking-widest uppercase">Preview</Badge>
+                    <Badge className={`rounded-none text-[10px] tracking-widest uppercase ${w.status === 'published' ? 'bg-[#3A3226] text-[#FDFBF7]' : 'bg-white text-[#3A3226]'}`}>{w.status}</Badge>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="text-[10px] tracking-[0.3em] uppercase text-[#8B7355] mb-1">{w.template}</div>
+                  <h3 className="font-serif text-2xl text-[#3A3226]">{w.brideName} <span className="italic text-[#8B7355]">&amp;</span> {w.groomName}</h3>
+                  <div className="text-xs text-[#3A3226]/60 mt-2">/{w.slug}</div>
+                  <div className="flex gap-1 flex-wrap mt-5">
+                    {w.status === 'published' && <a href={publicUrl} target="_blank" rel="noreferrer" className="px-3 py-2 text-xs tracking-widest uppercase border border-[#C9B896] text-[#8B7355] hover:bg-[#F5EFE4] inline-flex items-center gap-1"><ExternalLink size={12} /> View Demo</a>}
+                    <button onClick={() => onDuplicate(w)} className="px-3 py-2 text-xs tracking-widest uppercase bg-[#3A3226] text-[#FDFBF7] hover:bg-[#1F1A14] inline-flex items-center gap-1"><Copy size={12} /> Use for Client</button>
+                    <button onClick={() => onEdit(w.id)} className="px-3 py-2 text-xs tracking-widest uppercase border border-[#C9B896] text-[#8B7355] hover:bg-[#F5EFE4] inline-flex items-center gap-1"><Edit3 size={12} /> Edit</button>
+                    <button onClick={() => onTogglePublish(w)} className="px-3 py-2 text-xs tracking-widest uppercase border border-[#C9B896] text-[#8B7355] hover:bg-[#F5EFE4] inline-flex items-center gap-1"><Eye size={12} /> {w.status === 'published' ? 'Unpublish' : 'Publish'}</button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function WeddingForm({ id, onCancel, onSaved }) {
   const [tab, setTab] = useState('basic')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(!!id)
   const [form, setForm] = useState({
     brideName: '', groomName: '', tagline: '', weddingDate: '', slug: '',
-    template: 'Moonveil', status: 'draft',
+    template: 'Moonveil', status: 'draft', plan: 'Signature', isDemo: false,
     story: '',
     heroImage: null, gallery: [],
     events: [],
     rsvpSettings: { enabled: true, deadline: '', mealOptions: ['Vegetarian', 'Non-Vegetarian'], guestLimit: null },
-    advancedSettings: { socialMedia: { instagram: '', facebook: '' }, musicEmbed: '', giftRegistryLink: '', customDomain: '' },
+    advancedSettings: { socialMedia: { instagram: '', facebook: '' }, musicEmbed: '', giftRegistryLink: '', customDomain: '', password: '' },
   })
 
   useEffect(() => {
@@ -363,6 +494,8 @@ function WeddingForm({ id, onCancel, onSaved }) {
         setForm({
           ...form,
           ...w,
+          plan: w.plan || 'Signature',
+          isDemo: w.isDemo === true,
           weddingDate: dateOnly,
           weddingTime: timeOnly,
           rsvpSettings: {
@@ -376,6 +509,7 @@ function WeddingForm({ id, onCancel, onSaved }) {
             musicEmbed: w.advancedSettings?.musicEmbed || '',
             giftRegistryLink: w.advancedSettings?.giftRegistryLink || '',
             customDomain: w.advancedSettings?.customDomain || '',
+            password: w.advancedSettings?.password || '',
           },
         })
       }
@@ -448,9 +582,13 @@ function WeddingForm({ id, onCancel, onSaved }) {
       const time = (form.weddingTime || '').trim() || '12:00'
       const isoIST = `${form.weddingDate}T${time}:00+05:30`
       const combinedDate = new Date(isoIST)
+      const sanitized = sanitizePlanFields(form)
       const payload = {
         ...form,
+        ...sanitized,
         status: status || form.status,
+        plan: form.plan || 'Signature',
+        isDemo: form.isDemo === true,
         weddingDate: isNaN(combinedDate.getTime()) ? form.weddingDate : combinedDate.toISOString(),
       }
       if (payload.rsvpSettings && !payload.rsvpSettings.deadline) delete payload.rsvpSettings.deadline
@@ -477,14 +615,23 @@ function WeddingForm({ id, onCancel, onSaved }) {
   return (
     <div>
       <button onClick={onCancel} className="flex items-center gap-2 text-[#8B7355] hover:text-[#3A3226] mb-6 text-sm">
-        <ChevronLeft size={16} /> Back to weddings
+        <ChevronLeft size={16} /> Back
       </button>
+      {form.isDemo && (
+        <div className="mb-6 border border-[#C9B896] bg-[#C9B896]/15 p-4 text-sm text-[#3A3226]">
+          <span className="font-medium">Preview mode:</span> this page belongs to the template preview library and can show booking CTAs. Use “Use for Client” from the Preview panel to create a real wedding draft without demo booking widgets.
+        </div>
+      )}
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-2">{id ? 'Edit' : 'Create'}</div>
           <h1 className="font-serif font-light text-5xl text-[#3A3226]">
             {form.brideName && form.groomName ? <>{form.brideName} <em className="italic text-[#8B7355]">&amp;</em> {form.groomName}</> : 'New wedding'}
           </h1>
+          <div className="flex gap-2 mt-3 flex-wrap">
+            {form.isDemo && <Badge className="rounded-none bg-[#C9B896] text-[#3A3226] tracking-widest uppercase">Preview</Badge>}
+            <Badge className="rounded-none bg-[#3A3226] text-[#FDFBF7] tracking-widest uppercase">{form.plan || 'Signature'} plan</Badge>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => save('draft')} disabled={saving} variant="outline" className="rounded-none border-[#3A3226] text-[#3A3226] bg-transparent tracking-widest text-xs uppercase">
@@ -531,6 +678,27 @@ function WeddingForm({ id, onCancel, onSaved }) {
                 <Input value={form.slug} onChange={(e) => set('slug', e.target.value)} placeholder="aanya-and-vikram" className="rounded-none border-[#C9B896] bg-white/40" />
               </Field>
             </div>
+            <Field label="Client plan" hint="Plan selection controls what the studio promises, edits, and upsells for this wedding.">
+              <div className="grid md:grid-cols-3 gap-3">
+                {PLAN_OPTIONS.map(plan => (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => set('plan', plan.id)}
+                    className={`p-4 border text-left transition ${form.plan === plan.id ? 'border-[#3A3226] bg-[#3A3226] text-[#FDFBF7]' : 'border-[#C9B896] bg-white/40 text-[#3A3226] hover:border-[#3A3226]'}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="font-serif text-xl">{plan.id}</div>
+                      <div className="text-xs tracking-widest uppercase opacity-80">{plan.price}</div>
+                    </div>
+                    <p className="text-xs leading-relaxed opacity-75 mb-3">{plan.summary}</p>
+                    <ul className="space-y-1 text-[10px] tracking-wider uppercase opacity-80">
+                      {plan.features.slice(0, 3).map(f => <li key={f}>· {f}</li>)}
+                    </ul>
+                  </button>
+                ))}
+              </div>
+            </Field>
             <Field label="Template">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {[
@@ -659,6 +827,11 @@ function WeddingForm({ id, onCancel, onSaved }) {
                 <Field label="Meal options" hint="Comma separated">
                   <Input value={(form.rsvpSettings.mealOptions || []).join(', ')} onChange={(e) => set('rsvpSettings', { ...form.rsvpSettings, mealOptions: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} className="rounded-none border-[#C9B896] bg-white/40" />
                 </Field>
+                <PlanGate plan={form.plan} required="Signature" label="Guest limit controls">
+                  <Field label="Guest limit" hint="Essential is capped commercially at 100 guests; Signature and Heirloom can be unlimited.">
+                    <Input type="number" min="1" value={form.rsvpSettings.guestLimit || ''} onChange={(e) => set('rsvpSettings', { ...form.rsvpSettings, guestLimit: e.target.value ? Number(e.target.value) : null })} placeholder={form.plan === 'Essential' ? '100' : 'Unlimited'} disabled={!hasPlan(form.plan, 'Signature')} className="rounded-none border-[#C9B896] bg-white/40 disabled:opacity-50" />
+                  </Field>
+                </PlanGate>
               </>
             )}
           </div>
@@ -669,15 +842,43 @@ function WeddingForm({ id, onCancel, onSaved }) {
             <Field label="Instagram URL">
               <Input value={form.advancedSettings.socialMedia.instagram} onChange={(e) => set('advancedSettings', { ...form.advancedSettings, socialMedia: { ...form.advancedSettings.socialMedia, instagram: e.target.value } })} className="rounded-none border-[#C9B896] bg-white/40" />
             </Field>
-            <Field label="Gift registry link">
-              <Input value={form.advancedSettings.giftRegistryLink} onChange={(e) => set('advancedSettings', { ...form.advancedSettings, giftRegistryLink: e.target.value })} className="rounded-none border-[#C9B896] bg-white/40" />
-            </Field>
-            <Field label="Music/Video embed URL" hint="Spotify or YouTube link">
-              <Input value={form.advancedSettings.musicEmbed} onChange={(e) => set('advancedSettings', { ...form.advancedSettings, musicEmbed: e.target.value })} className="rounded-none border-[#C9B896] bg-white/40" />
-            </Field>
+            <PlanGate plan={form.plan} required="Signature" label="Password protection">
+              <Field label="Guest password" hint="Available on Signature and Heirloom plans.">
+                <Input value={form.advancedSettings.password || ''} onChange={(e) => set('advancedSettings', { ...form.advancedSettings, password: e.target.value })} disabled={!hasPlan(form.plan, 'Signature')} className="rounded-none border-[#C9B896] bg-white/40 disabled:opacity-50" />
+              </Field>
+            </PlanGate>
+            <PlanGate plan={form.plan} required="Heirloom" label="Gift registry">
+              <Field label="Gift registry link" hint="Heirloom plan feature.">
+                <Input value={form.advancedSettings.giftRegistryLink} onChange={(e) => set('advancedSettings', { ...form.advancedSettings, giftRegistryLink: e.target.value })} disabled={!hasPlan(form.plan, 'Heirloom')} className="rounded-none border-[#C9B896] bg-white/40 disabled:opacity-50" />
+              </Field>
+            </PlanGate>
+            <PlanGate plan={form.plan} required="Heirloom" label="Music/video embeds">
+              <Field label="Music/Video embed URL" hint="Spotify or YouTube link. Heirloom plan feature.">
+                <Input value={form.advancedSettings.musicEmbed} onChange={(e) => set('advancedSettings', { ...form.advancedSettings, musicEmbed: e.target.value })} disabled={!hasPlan(form.plan, 'Heirloom')} className="rounded-none border-[#C9B896] bg-white/40 disabled:opacity-50" />
+              </Field>
+            </PlanGate>
+            <PlanGate plan={form.plan} required="Heirloom" label="Custom domain">
+              <Field label="Custom domain" hint="Example: anaya-vihaan.com. Heirloom plan feature.">
+                <Input value={form.advancedSettings.customDomain || ''} onChange={(e) => set('advancedSettings', { ...form.advancedSettings, customDomain: e.target.value })} disabled={!hasPlan(form.plan, 'Heirloom')} className="rounded-none border-[#C9B896] bg-white/40 disabled:opacity-50" />
+              </Field>
+            </PlanGate>
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function PlanGate({ plan, required, label, children }) {
+  const unlocked = hasPlan(plan, required)
+  return (
+    <div className={`${unlocked ? '' : 'opacity-80'}`}>
+      {!unlocked && (
+        <div className="mb-2 inline-flex items-center gap-2 border border-[#C9B896] bg-[#C9B896]/15 px-3 py-1 text-[10px] tracking-widest uppercase text-[#8B7355]">
+          <Sparkles size={12} /> {label} · {required}+ plan
+        </div>
+      )}
+      {children}
     </div>
   )
 }
