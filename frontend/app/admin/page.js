@@ -47,6 +47,25 @@ function hasPlan(plan, required) {
   return planRank(plan) >= planRank(required)
 }
 
+function sanitizePlanFields(form) {
+  const plan = form.plan || 'Signature'
+  const advancedSettings = { ...(form.advancedSettings || {}) }
+  const rsvpSettings = { ...(form.rsvpSettings || {}) }
+
+  if (!hasPlan(plan, 'Signature')) {
+    delete advancedSettings.password
+    delete rsvpSettings.guestLimit
+  }
+
+  if (!hasPlan(plan, 'Heirloom')) {
+    delete advancedSettings.giftRegistryLink
+    delete advancedSettings.musicEmbed
+    delete advancedSettings.customDomain
+  }
+
+  return { advancedSettings, rsvpSettings }
+}
+
 function authFetch(url, options = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('kal_token') : null
   return fetch(url, {
@@ -76,6 +95,7 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState(null)
   const [rsvpWedding, setRsvpWedding] = useState(null)
   const [weddings, setWeddings] = useState([])
+  const [previewWeddings, setPreviewWeddings] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -92,20 +112,28 @@ export default function AdminPage() {
   const loadWeddings = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await authFetch('/api/weddings')
-      if (res.status === 401) { localStorage.clear(); router.replace('/admin/login'); return }
-      const data = await res.json()
-      setWeddings(data.weddings || [])
+      const params = new URLSearchParams({ isDemo: 'false' })
+      if (search) params.set('q', search)
+      if (statusFilter !== 'all') params.set('status', statusFilter)
+      const [realRes, previewRes] = await Promise.all([
+        authFetch(`/api/weddings?${params.toString()}`),
+        authFetch('/api/weddings?isDemo=true'),
+      ])
+      if (realRes.status === 401 || previewRes.status === 401) { localStorage.clear(); router.replace('/admin/login'); return }
+      const realData = await realRes.json()
+      const previewData = await previewRes.json()
+      setWeddings(realData.weddings || [])
+      setPreviewWeddings(previewData.weddings || [])
     } catch (e) {
       toast.error('Failed to load weddings')
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }, [search, statusFilter, router])
 
   useEffect(() => {
     if (user) loadWeddings()
-  }, [user, loadWeddings])
+  }, [user, search, statusFilter, loadWeddings])
 
   function logout() {
     localStorage.clear()
@@ -140,14 +168,7 @@ export default function AdminPage() {
     loadWeddings()
   }
 
-  const realWeddings = weddings.filter(w => w.isDemo !== true)
-  const displayedRealWeddings = realWeddings.filter(w => {
-    const matchesStatus = statusFilter === 'all' || w.status === statusFilter
-    const q = search.trim().toLowerCase()
-    const matchesSearch = !q || [w.brideName, w.groomName, w.slug, w.template, w.plan].some(v => String(v || '').toLowerCase().includes(q))
-    return matchesStatus && matchesSearch
-  })
-  const previewWeddings = weddings.filter(w => w.isDemo === true)
+  const realWeddings = weddings
 
   const stats = {
     total: realWeddings.length,
@@ -561,8 +582,10 @@ function WeddingForm({ id, onCancel, onSaved }) {
       const time = (form.weddingTime || '').trim() || '12:00'
       const isoIST = `${form.weddingDate}T${time}:00+05:30`
       const combinedDate = new Date(isoIST)
+      const sanitized = sanitizePlanFields(form)
       const payload = {
         ...form,
+        ...sanitized,
         status: status || form.status,
         plan: form.plan || 'Signature',
         isDemo: form.isDemo === true,

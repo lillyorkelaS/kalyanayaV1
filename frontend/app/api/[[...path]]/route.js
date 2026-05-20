@@ -66,14 +66,25 @@ async function handler(request, { params }) {
       const url = new URL(request.url)
       const q = url.searchParams.get('q') || ''
       const status = url.searchParams.get('status') || 'all'
+      const isDemo = url.searchParams.get('isDemo')
       const filter = { userId: u.id, deletedAt: { $exists: false } }
       if (status !== 'all') filter.status = status
+      if (isDemo === 'true') filter.isDemo = true
+      if (isDemo === 'false') filter.$or = [{ isDemo: { $ne: true } }, { isDemo: { $exists: false } }]
       if (q) {
-        filter.$or = [
+        const searchFilter = [
           { brideName: { $regex: q, $options: 'i' } },
           { groomName: { $regex: q, $options: 'i' } },
           { slug: { $regex: q, $options: 'i' } },
+          { template: { $regex: q, $options: 'i' } },
+          { plan: { $regex: q, $options: 'i' } },
         ]
+        if (filter.$or) {
+          filter.$and = [{ $or: filter.$or }, { $or: searchFilter }]
+          delete filter.$or
+        } else {
+          filter.$or = searchFilter
+        }
       }
       const items = await db.collection('weddings').find(filter).sort({ createdAt: -1 }).limit(200).toArray()
       const cleaned = items.map(({ _id, ...rest }) => rest)
