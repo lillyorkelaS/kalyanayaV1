@@ -10,6 +10,7 @@ import MarigoldBloomTemplate from '@/components/templates/MarigoldBloom'
 import PearlVelvetTemplate from '@/components/templates/PearlVelvet'
 import BanyanBrassTemplate from '@/components/templates/BanyanBrass'
 import PichwaiBloomTemplate from '@/components/templates/PichwaiBloom'
+import AlbionVowTemplate from '@/components/templates/AlbionVow'
 
 const TEMPLATES = {
   'Moonveil': MoonveilTemplate,
@@ -22,6 +23,7 @@ const TEMPLATES = {
   'Pearl & Velvet': PearlVelvetTemplate,
   'Banyan & Brass': BanyanBrassTemplate,
   'Pichwai Bloom': PichwaiBloomTemplate,
+  'Albion Vow': AlbionVowTemplate,
 }
 
 async function getWedding(slug) {

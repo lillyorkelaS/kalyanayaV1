@@ -49,6 +49,19 @@ User refinement (2026-05-19):
 - **Zero per-template changes** — wrapper applies transitions globally, so future templates inherit automatically.
 
 
+### Added in this session (2026-05-20 — pt 3) — Template 11: Albion Vow
+- **Albion Vow** (`/app/frontend/components/templates/AlbionVow.js`) — Classic English manor garden wedding. Palette: sage green `#8B9B7E` + dusty rose `#D4B5B0` + champagne brass `#C9A961` + antique cream `#F5EFE0` + soft charcoal `#3D4146`.
+- Custom SVG motifs hand-drawn: **English rose stem**, **eucalyptus branch**, **ivy vine**, **monogram crest with laurels** (auto-generated from couple's initials), **flourish divider**, **wax seal** (CSS radial-gradient + Pinyon Script initials).
+- **Pinyon Script** + **Cormorant Garamond** loaded via Google Fonts (lazy-loaded inside template — no global config needed).
+- Hero reads like a letterpress invitation: "Together with their families" eyebrow → "request the honour of your presence" in script → italic names with sage script "and" → flourish divider → Friday / 12 June 2026 / at 4:30 pm. Cream-paper overlay (92% opacity) makes ANY hero image work as a soft watermark.
+- **Story section** = handwritten letter card with "Dearest reader," opening salutation, drop cap, "yours, forever —" sign-off.
+- **Gallery** = polaroid-style frames with hand-placed tilt (±3°), drop shadow, "no. 01" script captions.
+- **Events** = letterpress cards with vertical date band, "no. 02" script number, italic title.
+- **RSVP** = letter-style form with embossed wax seal on top (initials), "With joy / Perhaps / With regret" reply choices, "Send my reply" CTA.
+- Updated wedding renderer, admin picker (11 templates), landing page ("Eleven signatures", new pricing copy "All 11 luxury templates").
+- Live demo: `/wedding/eleanor-henry` (muhurtham 4:30 PM).
+
+
 ## Backlog (suggested next steps — awaiting user confirmation)
 Curated for "surprise me" mandate. Ordered by ROI for a SaaS wedding studio:
 

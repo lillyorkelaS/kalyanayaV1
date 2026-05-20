@@ -23,6 +23,7 @@ const TEMPLATE_IMGS = [
   'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=900&q=80',
   'https://images.pexels.com/photos/1444442/pexels-photo-1444442.jpeg?auto=compress&w=900',
   'https://images.pexels.com/photos/1488315/pexels-photo-1488315.jpeg?auto=compress&w=900',
+  'https://images.pexels.com/photos/1444444/pexels-photo-1444444.jpeg?auto=compress&w=900',
 ]
 const FEATURE_IMG_1 = 'https://images.pexels.com/photos/19590224/pexels-photo-19590224.jpeg'
 const FEATURE_IMG_2 = 'https://images.pexels.com/photos/35328204/pexels-photo-35328204.jpeg'
@@ -47,6 +48,7 @@ const templates = [
   { name: 'Pearl & Velvet', tag: 'Art Deco · Gatsby · Luxe', img: TEMPLATE_IMGS[7], desc: 'Champagne shimmer on emerald velvet — a Gatsby-era affair to remember.' },
   { name: 'Banyan & Brass', tag: 'South Indian · Temple · Sacred', img: TEMPLATE_IMGS[8], desc: 'Sandalwood cream, temple maroon, brass gold — gopurams, kalashams and kolam for a sacred Tamil-Kerala union.' },
   { name: 'Pichwai Bloom', tag: 'Pichwai · Indigo · Royal Floral', img: TEMPLATE_IMGS[9], desc: 'Deep indigo, mustard ochre, lotus pink — peacocks, lotuses and haveli arches in the Nathdwara tradition.' },
+  { name: 'Albion Vow', tag: 'English · Classic · Garden Manor', img: TEMPLATE_IMGS[10], desc: 'Sage, dusty rose and champagne brass — English roses, eucalyptus, wax seals and copperplate script for a manor garden affair.' },
 ]
 
 const testimonials = [
@@ -57,7 +59,7 @@ const testimonials = [
 
 const pricing = [
   { name: 'Essential', price: '2,499', features: ['1 stunning template', 'Up to 100 guests', 'RSVP tracking', 'Photo gallery', '6 months hosting'], popular: false },
-  { name: 'Signature', price: '4,999', features: ['All 10 luxury templates', 'Unlimited guests', 'Advanced RSVP + meals', 'Unlimited photos', '1 year hosting', 'Custom URL slug', 'Password protection'], popular: true },
+  { name: 'Signature', price: '4,999', features: ['All 11 luxury templates', 'Unlimited guests', 'Advanced RSVP + meals', 'Unlimited photos', '1 year hosting', 'Custom URL slug', 'Password protection'], popular: true },
   { name: 'Heirloom', price: '7,000', features: ['Everything in Signature', 'Custom domain', 'Priority support', 'Video embeds', '3 years hosting', 'Gift registry link', 'Music integration'], popular: false },
 ]
 
@@ -228,11 +230,11 @@ export default function LandingPage() {
       <section id="templates" className="py-24 md:py-32 bg-[#F5EFE4]">
         <div className="container mx-auto px-4">
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="text-center mb-20">
-            <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-4">Ten signatures</div>
+            <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-4">Eleven signatures</div>
             <h2 className="font-serif font-light text-5xl md:text-6xl text-[#3A3226]">
               Choose a <em className="italic">canvas</em> worthy of your story.
             </h2>
-            <p className="mt-6 text-[#3A3226]/70 max-w-2xl mx-auto">Ten distinct moods — from minimal editorial to South Indian temple, Pichwai painting to Gatsby art deco.</p>
+            <p className="mt-6 text-[#3A3226]/70 max-w-2xl mx-auto">Eleven distinct moods — from minimal editorial and English manor garden to South Indian temple, Pichwai painting and Gatsby art deco.</p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {templates.map((t, i) => (
