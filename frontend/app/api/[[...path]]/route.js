@@ -114,6 +114,7 @@ async function handler(request, { params }) {
         events: body.events || [],
         rsvpSettings: body.rsvpSettings || { enabled: true, mealOptions: ['Vegetarian', 'Non-Vegetarian'] },
         advancedSettings: body.advancedSettings || {},
+        isDemo: body.isDemo === true,
         createdAt: new Date(),
         updatedAt: new Date(),
       }

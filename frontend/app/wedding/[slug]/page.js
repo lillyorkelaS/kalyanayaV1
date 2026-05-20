@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import WeddingPageWrapper from '@/components/WeddingPageWrapper'
+import DemoBookingWidget from '@/components/DemoBookingWidget'
 import MoonveilTemplate from '@/components/templates/Moonveil'
 import RoyalHeritageTemplate from '@/components/templates/RoyalHeritage'
 import EternalEditTemplate from '@/components/templates/EternalEdit'
@@ -75,6 +76,7 @@ export default async function WeddingPage({ params }) {
   return (
     <WeddingPageWrapper>
       <Template wedding={w} />
+      {w.isDemo && <DemoBookingWidget templateName={w.template} />}
     </WeddingPageWrapper>
   )
 }

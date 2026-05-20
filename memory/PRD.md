@@ -77,6 +77,30 @@ Curated for "surprise me" mandate. Ordered by ROI for a SaaS wedding studio:
 - Live demo: `/wedding/ayesha-imran` (Nikah at 6:30 PM, Hyderabad).
 
 
+
+### Added in this session (2026-05-20 — pt 5) — 12 demos + template Preview + booking widget
+- **12 live demo weddings** seeded with rich, character-driven data (couple names, taglines, multi-paragraph stories, hero images, 5–6 gallery photos, 2–4 events with venues + descriptions):
+  - Moonveil → `/wedding/preview-moonveil` — Anaya & Vihaan, Bengaluru (The Leela Palace)
+  - Royal Heritage → `/wedding/preview-royal-heritage` — Aditi & Aarav, Jaipur (Rambagh Palace)
+  - Eternal Edit → `/wedding/preview-eternal-edit` — Maya & Rohan, Mumbai (Soho House)
+  - Crimson Lotus → `/wedding/preview-crimson-lotus` — Aanya & Vivaan, Goa (W Goa)
+  - Sapphire Saga → `/wedding/preview-sapphire-saga` — Inaaya & Arjun, Udaipur (Taj Lake Palace)
+  - Sanctum Veil → `/wedding/preview-sanctum-veil` — Sarah & Daniel, Goa (St. Catherine's)
+  - Marigold Bloom → `/wedding/preview-marigold-bloom` — Tanvi & Kabir, Delhi (ITC Maurya)
+  - Pearl & Velvet → `/wedding/preview-pearl-velvet` — Anjali & Karan, Mumbai NYE (Taj Mahal Palace)
+  - Banyan & Brass → `/wedding/lakshmi-karthik` — Lakshmi & Karthik, Chennai
+  - Pichwai Bloom → `/wedding/radhika-arjun` — Radhika & Arjun, Udaipur
+  - Albion Vow → `/wedding/eleanor-henry` — Eleanor & Henry, Cotswolds
+  - Jannah Vow → `/wedding/ayesha-imran` — Ayesha & Imran, Hyderabad
+- **`isDemo` field** added to wedding schema (backend whitelist updated); idempotent seed script at `/app/scripts/seed_demos.sh`.
+- **`<DemoBookingWidget>`** (`/app/frontend/components/DemoBookingWidget.js`) shown only when `wedding.isDemo === true`:
+  - Top dismissible **ribbon**: *"You're viewing a Kalyanaya demo. Want the [Template] for your wedding?"* + [Book Yours] CTA
+  - Bottom-right **tooltip card** (desktop): *"Loving [Template]? Book this template for your wedding — concierge-built in 24 hours."* + [Enquire] and [WhatsApp] buttons
+  - Persistent floating **"✦ Book This Template"** pill (mobile + desktop) with mobile-only WhatsApp circle button
+  - All CTAs pre-fill template name into ContactModal and WhatsApp deep-link message
+- **Landing page template cards rebuilt**: image is now a clickable Preview link (opens `/wedding/<demoSlug>` in new tab) with "LIVE DEMO" badge, hover reveals "Preview →" overlay. Below the image: title, tag, description, and **two buttons** — "View Live Demo →" (text link) and "Enquire" (dark button which still opens ContactModal pre-filled with template).
+- Verified: 200 OK on every demo URL, isDemo flag present in public API response, ribbon + tooltip + floating pill all render correctly on demo pages, regular customer weddings (no isDemo) are unaffected.
+
 ### P0 — Revenue & lead conversion
 1. **Stripe / Razorpay checkout** — once a couple is qualified, send them a payment link straight from the Leads tab. Skip invoicing dance.
 2. **Live template preview links** — give each template a working `/preview/[template]` URL with dummy data so leads can browse demos.

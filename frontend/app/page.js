@@ -39,18 +39,18 @@ const features = [
 ]
 
 const templates = [
-  { name: 'Moonveil', tag: 'Minimal · Modern · Timeless', img: TEMPLATE_IMGS[0], desc: 'Editorial elegance. Ivory whitespace, slate accents, fashion-magazine restraint.' },
-  { name: 'Royal Heritage', tag: 'Rich · Traditional · Luxurious', img: TEMPLATE_IMGS[1], desc: 'Burgundy and gold, ornate borders, mandalas — a true Mughal celebration.' },
-  { name: 'Eternal Edit', tag: 'Cinematic · Contemporary · Bold', img: TEMPLATE_IMGS[2], desc: 'A film about you. Dark mode, letterboxed hero, chapter-numbered timeline.' },
-  { name: 'Crimson Lotus', tag: 'Floral · Romantic · Garden', img: TEMPLATE_IMGS[3], desc: 'Blush peonies, sage sprigs, floating petals — a love story in full bloom.' },
-  { name: 'Sapphire Saga', tag: 'Celestial · Mughal · Royal', img: TEMPLATE_IMGS[4], desc: 'Midnight blue, silver stars, jharokha arches — a saga written in the sky.' },
-  { name: 'Sanctum Veil', tag: 'Christian · Sacred · Cathedral', img: TEMPLATE_IMGS[5], desc: 'Cathedral arches, dove, olive branches — ivory grace for a sacred union.' },
-  { name: 'Marigold Bloom', tag: 'Festive · Vibrant · Joyful', img: TEMPLATE_IMGS[6], desc: 'Marigold yellow, emerald green, hanging toran — a colourful Indian celebration.' },
-  { name: 'Pearl & Velvet', tag: 'Art Deco · Gatsby · Luxe', img: TEMPLATE_IMGS[7], desc: 'Champagne shimmer on emerald velvet — a Gatsby-era affair to remember.' },
-  { name: 'Banyan & Brass', tag: 'South Indian · Temple · Sacred', img: TEMPLATE_IMGS[8], desc: 'Sandalwood cream, temple maroon, brass gold — gopurams, kalashams and kolam for a sacred Tamil-Kerala union.' },
-  { name: 'Pichwai Bloom', tag: 'Pichwai · Indigo · Royal Floral', img: TEMPLATE_IMGS[9], desc: 'Deep indigo, mustard ochre, lotus pink — peacocks, lotuses and haveli arches in the Nathdwara tradition.' },
-  { name: 'Albion Vow', tag: 'English · Classic · Garden Manor', img: TEMPLATE_IMGS[10], desc: 'Sage, dusty rose and champagne brass — English roses, eucalyptus, wax seals and copperplate script for a manor garden affair.' },
-  { name: 'Jannah Vow', tag: 'Muslim · Nikah · Mughal Heritage', img: TEMPLATE_IMGS[11], desc: 'Emerald, antique gold and ivory — eight-pointed stars, mosque silhouettes, Bismillah calligraphy and arabesque vines for a sacred Nikah.' },
+  { name: 'Moonveil', tag: 'Minimal · Modern · Timeless', img: TEMPLATE_IMGS[0], demo: 'preview-moonveil', desc: 'Editorial elegance. Ivory whitespace, slate accents, fashion-magazine restraint.' },
+  { name: 'Royal Heritage', tag: 'Rich · Traditional · Luxurious', img: TEMPLATE_IMGS[1], demo: 'preview-royal-heritage', desc: 'Burgundy and gold, ornate borders, mandalas — a true Mughal celebration.' },
+  { name: 'Eternal Edit', tag: 'Cinematic · Contemporary · Bold', img: TEMPLATE_IMGS[2], demo: 'preview-eternal-edit', desc: 'A film about you. Dark mode, letterboxed hero, chapter-numbered timeline.' },
+  { name: 'Crimson Lotus', tag: 'Floral · Romantic · Garden', img: TEMPLATE_IMGS[3], demo: 'preview-crimson-lotus', desc: 'Blush peonies, sage sprigs, floating petals — a love story in full bloom.' },
+  { name: 'Sapphire Saga', tag: 'Celestial · Mughal · Royal', img: TEMPLATE_IMGS[4], demo: 'preview-sapphire-saga', desc: 'Midnight blue, silver stars, jharokha arches — a saga written in the sky.' },
+  { name: 'Sanctum Veil', tag: 'Christian · Sacred · Cathedral', img: TEMPLATE_IMGS[5], demo: 'preview-sanctum-veil', desc: 'Cathedral arches, dove, olive branches — ivory grace for a sacred union.' },
+  { name: 'Marigold Bloom', tag: 'Festive · Vibrant · Joyful', img: TEMPLATE_IMGS[6], demo: 'preview-marigold-bloom', desc: 'Marigold yellow, emerald green, hanging toran — a colourful Indian celebration.' },
+  { name: 'Pearl & Velvet', tag: 'Art Deco · Gatsby · Luxe', img: TEMPLATE_IMGS[7], demo: 'preview-pearl-velvet', desc: 'Champagne shimmer on emerald velvet — a Gatsby-era affair to remember.' },
+  { name: 'Banyan & Brass', tag: 'South Indian · Temple · Sacred', img: TEMPLATE_IMGS[8], demo: 'lakshmi-karthik', desc: 'Sandalwood cream, temple maroon, brass gold — gopurams, kalashams and kolam for a sacred Tamil-Kerala union.' },
+  { name: 'Pichwai Bloom', tag: 'Pichwai · Indigo · Royal Floral', img: TEMPLATE_IMGS[9], demo: 'radhika-arjun', desc: 'Deep indigo, mustard ochre, lotus pink — peacocks, lotuses and haveli arches in the Nathdwara tradition.' },
+  { name: 'Albion Vow', tag: 'English · Classic · Garden Manor', img: TEMPLATE_IMGS[10], demo: 'eleanor-henry', desc: 'Sage, dusty rose and champagne brass — English roses, eucalyptus, wax seals and copperplate script for a manor garden affair.' },
+  { name: 'Jannah Vow', tag: 'Muslim · Nikah · Mughal Heritage', img: TEMPLATE_IMGS[11], demo: 'ayesha-imran', desc: 'Emerald, antique gold and ivory — eight-pointed stars, mosque silhouettes, Bismillah calligraphy and arabesque vines for a sacred Nikah.' },
 ]
 
 const testimonials = [
@@ -243,24 +243,47 @@ export default function LandingPage() {
               <motion.div
                 key={t.name}
                 initial="hidden" whileInView="show" viewport={{ once: true }}
-                variants={fadeUp} transition={{ delay: i * 0.08 }}
-                className="group cursor-pointer"
-                onClick={() => openContact(t.name)}
+                variants={fadeUp} transition={{ delay: i * 0.06 }}
+                className="group"
                 data-testid={`template-card-${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
               >
-                <div className="relative aspect-[3/4] overflow-hidden mb-6">
+                <a
+                  href={`/wedding/${t.demo}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-testid={`template-preview-${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                  className="relative aspect-[3/4] overflow-hidden mb-6 block cursor-pointer"
+                >
                   <img src={t.img} alt={t.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#3A3226]/50 to-transparent" />
-                  <div className="absolute top-4 left-4 bg-[#FDFBF7] text-[#3A3226] text-[10px] tracking-widest uppercase px-3 py-1">Available</div>
-                  <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition">
-                    <div className="bg-[#FDFBF7] text-[#3A3226] text-[10px] tracking-widest uppercase px-3 py-2 inline-flex items-center gap-1">
-                      Enquire about {t.name} <ChevronRight size={12} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#3A3226]/65 via-[#3A3226]/15 to-transparent" />
+                  <div className="absolute top-4 left-4 bg-[#FDFBF7] text-[#3A3226] text-[10px] tracking-widest uppercase px-3 py-1">Live Demo</div>
+                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-2 opacity-0 group-hover:opacity-100 transition">
+                    <div className="bg-[#FDFBF7] text-[#3A3226] text-[10px] tracking-widest uppercase px-4 py-2.5 inline-flex items-center gap-2">
+                      Preview <ChevronRight size={12} />
                     </div>
                   </div>
-                </div>
+                </a>
                 <h3 className="font-serif text-3xl text-[#3A3226] mb-2">{t.name}</h3>
                 <p className="text-[#8B7355] text-sm tracking-wider mb-2">{t.tag}</p>
-                <p className="text-[#3A3226]/65 text-sm leading-relaxed">{t.desc}</p>
+                <p className="text-[#3A3226]/65 text-sm leading-relaxed mb-4">{t.desc}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <a
+                    href={`/wedding/${t.demo}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-testid={`template-preview-btn-${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                    className="inline-flex items-center gap-2 text-xs tracking-[0.25em] uppercase border-b border-[#3A3226] text-[#3A3226] pb-1 hover:border-[#8B7355] hover:text-[#8B7355] transition"
+                  >
+                    View live demo <ChevronRight size={12} />
+                  </a>
+                  <button
+                    onClick={() => openContact(t.name)}
+                    data-testid={`template-enquire-btn-${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                    className="inline-flex items-center gap-2 text-xs tracking-[0.25em] uppercase bg-[#3A3226] hover:bg-[#8B7355] text-[#FDFBF7] px-4 py-2 transition"
+                  >
+                    Enquire
+                  </button>
+                </div>
               </motion.div>
             ))}
           </div>
