@@ -29,6 +29,10 @@ const TEMPLATES = {
   'Jannah Vow': JannahVowTemplate,
 }
 
+function shouldShowDemoBookingWidget(wedding) {
+  return wedding?.isDemo === true
+}
+
 async function getWedding(slug) {
   const h = headers()
   const proto = h.get('x-forwarded-proto') || 'http'
@@ -76,7 +80,7 @@ export default async function WeddingPage({ params }) {
   return (
     <WeddingPageWrapper>
       <Template wedding={w} />
-      {w.isDemo && <DemoBookingWidget templateName={w.template} />}
+      {shouldShowDemoBookingWidget(w) && <DemoBookingWidget templateName={w.template} />}
     </WeddingPageWrapper>
   )
 }
