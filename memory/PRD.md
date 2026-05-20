@@ -65,6 +65,18 @@ User refinement (2026-05-19):
 ## Backlog (suggested next steps — awaiting user confirmation)
 Curated for "surprise me" mandate. Ordered by ROI for a SaaS wedding studio:
 
+### Added in this session (2026-05-20 — pt 4) — Template 12: Jannah Vow (Muslim wedding)
+- **Jannah Vow** (`/app/frontend/components/templates/JannahVow.js`) — Authentic Muslim Nikah wedding template. Palette: deep Islamic emerald `#0F5132` + antique Mughal gold `#C5A572` + warm ivory `#F5EFE3` + rose-gold accent + deepest emerald.
+- Custom SVG motifs hand-drawn: **8-point Islamic star** (Rub el Hizb), **mashrabiya/girih tile** lattice, **mosque silhouette** (dome + dual minarets + crescent finials), **crescent + star**, **arabesque vine**, **Ottoman tulip**, **mehrab arch** (via clip-path).
+- **Amiri Arabic font** + **Cormorant Garamond** loaded via Google Fonts.
+- Tasteful Arabic calligraphy: Bismillah hero blessing, Quran 30:21 (وَمِنْ آيَاتِهِ — "And among His signs") above story, "Nikah Mubarak" on RSVP, "Baraka Allahu lakuma" (May Allah bless you both) in footer — all with English translations.
+- Muslim-specific copy: "With the blessings of Allah ﷻ", "Nikah at 6:30 PM" muhurtham label, "Insha'Allah / Perhaps / With regret" RSVP options, "A dua for the couple" textarea, "Meal preference (all halal)", "Send · Insha'Allah" CTA, "Your duas are our greatest gift" registry section.
+- **Gallery uses mehrab arch-shaped photo frames** via CSS clip-path — a unique Islamic architectural detail.
+- Event cards designed for **Mehndi · Nikah · Walima** flow with emerald date band + mashrabiya backdrop.
+- Updated wedding renderer, admin picker (12 templates), landing page ("Twelve signatures"), pricing ("All 12 luxury templates").
+- Live demo: `/wedding/ayesha-imran` (Nikah at 6:30 PM, Hyderabad).
+
+
 ### P0 — Revenue & lead conversion
 1. **Stripe / Razorpay checkout** — once a couple is qualified, send them a payment link straight from the Leads tab. Skip invoicing dance.
 2. **Live template preview links** — give each template a working `/preview/[template]` URL with dummy data so leads can browse demos.

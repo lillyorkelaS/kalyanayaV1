@@ -24,6 +24,7 @@ const TEMPLATE_IMGS = [
   'https://images.pexels.com/photos/1444442/pexels-photo-1444442.jpeg?auto=compress&w=900',
   'https://images.pexels.com/photos/1488315/pexels-photo-1488315.jpeg?auto=compress&w=900',
   'https://images.pexels.com/photos/1444444/pexels-photo-1444444.jpeg?auto=compress&w=900',
+  'https://images.pexels.com/photos/2306281/pexels-photo-2306281.jpeg?auto=compress&w=900',
 ]
 const FEATURE_IMG_1 = 'https://images.pexels.com/photos/19590224/pexels-photo-19590224.jpeg'
 const FEATURE_IMG_2 = 'https://images.pexels.com/photos/35328204/pexels-photo-35328204.jpeg'
@@ -49,6 +50,7 @@ const templates = [
   { name: 'Banyan & Brass', tag: 'South Indian · Temple · Sacred', img: TEMPLATE_IMGS[8], desc: 'Sandalwood cream, temple maroon, brass gold — gopurams, kalashams and kolam for a sacred Tamil-Kerala union.' },
   { name: 'Pichwai Bloom', tag: 'Pichwai · Indigo · Royal Floral', img: TEMPLATE_IMGS[9], desc: 'Deep indigo, mustard ochre, lotus pink — peacocks, lotuses and haveli arches in the Nathdwara tradition.' },
   { name: 'Albion Vow', tag: 'English · Classic · Garden Manor', img: TEMPLATE_IMGS[10], desc: 'Sage, dusty rose and champagne brass — English roses, eucalyptus, wax seals and copperplate script for a manor garden affair.' },
+  { name: 'Jannah Vow', tag: 'Muslim · Nikah · Mughal Heritage', img: TEMPLATE_IMGS[11], desc: 'Emerald, antique gold and ivory — eight-pointed stars, mosque silhouettes, Bismillah calligraphy and arabesque vines for a sacred Nikah.' },
 ]
 
 const testimonials = [
@@ -59,7 +61,7 @@ const testimonials = [
 
 const pricing = [
   { name: 'Essential', price: '2,499', features: ['1 stunning template', 'Up to 100 guests', 'RSVP tracking', 'Photo gallery', '6 months hosting'], popular: false },
-  { name: 'Signature', price: '4,999', features: ['All 11 luxury templates', 'Unlimited guests', 'Advanced RSVP + meals', 'Unlimited photos', '1 year hosting', 'Custom URL slug', 'Password protection'], popular: true },
+  { name: 'Signature', price: '4,999', features: ['All 12 luxury templates', 'Unlimited guests', 'Advanced RSVP + meals', 'Unlimited photos', '1 year hosting', 'Custom URL slug', 'Password protection'], popular: true },
   { name: 'Heirloom', price: '7,000', features: ['Everything in Signature', 'Custom domain', 'Priority support', 'Video embeds', '3 years hosting', 'Gift registry link', 'Music integration'], popular: false },
 ]
 
@@ -230,7 +232,7 @@ export default function LandingPage() {
       <section id="templates" className="py-24 md:py-32 bg-[#F5EFE4]">
         <div className="container mx-auto px-4">
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="text-center mb-20">
-            <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-4">Eleven signatures</div>
+            <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-4">Twelve signatures</div>
             <h2 className="font-serif font-light text-5xl md:text-6xl text-[#3A3226]">
               Choose a <em className="italic">canvas</em> worthy of your story.
             </h2>
