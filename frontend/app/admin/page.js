@@ -342,10 +342,29 @@ function WeddingForm({ id, onCancel, onSaved }) {
       const data = await res.json()
       if (res.ok && data.wedding) {
         const w = data.wedding
+        // Parse stored datetime back into date + time fields
+        let dateOnly = ''
+        let timeOnly = ''
+        if (w.weddingDate) {
+          const dt = new Date(w.weddingDate)
+          if (!isNaN(dt.getTime())) {
+            // Convert to IST so admin sees same time they entered
+            const istParts = new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Asia/Kolkata',
+              year: 'numeric', month: '2-digit', day: '2-digit',
+              hour: '2-digit', minute: '2-digit', hour12: false,
+            }).formatToParts(dt)
+            const get = (t) => istParts.find(p => p.type === t)?.value
+            dateOnly = `${get('year')}-${get('month')}-${get('day')}`
+            const h = get('hour') === '24' ? '00' : get('hour')
+            timeOnly = `${h}:${get('minute')}`
+          }
+        }
         setForm({
           ...form,
           ...w,
-          weddingDate: w.weddingDate ? new Date(w.weddingDate).toISOString().slice(0, 10) : '',
+          weddingDate: dateOnly,
+          weddingTime: timeOnly,
           rsvpSettings: {
             enabled: w.rsvpSettings?.enabled !== false,
             deadline: w.rsvpSettings?.deadline ? new Date(w.rsvpSettings.deadline).toISOString().slice(0, 10) : '',
@@ -424,7 +443,16 @@ function WeddingForm({ id, onCancel, onSaved }) {
     }
     setSaving(true)
     try {
-      const payload = { ...form, status: status || form.status }
+      // Combine date + (optional) time into an ISO datetime with IST (+05:30)
+      // so it displays consistently regardless of where server / viewer is.
+      const time = (form.weddingTime || '').trim() || '12:00'
+      const isoIST = `${form.weddingDate}T${time}:00+05:30`
+      const combinedDate = new Date(isoIST)
+      const payload = {
+        ...form,
+        status: status || form.status,
+        weddingDate: isNaN(combinedDate.getTime()) ? form.weddingDate : combinedDate.toISOString(),
+      }
       if (payload.rsvpSettings && !payload.rsvpSettings.deadline) delete payload.rsvpSettings.deadline
       const url = id ? `/api/weddings/${id}` : '/api/weddings'
       const method = id ? 'PUT' : 'POST'
@@ -492,9 +520,12 @@ function WeddingForm({ id, onCancel, onSaved }) {
             <Field label="Tagline">
               <Input value={form.tagline} onChange={(e) => set('tagline', e.target.value)} placeholder="A love written in the stars" maxLength={200} className="rounded-none border-[#C9B896] bg-white/40" />
             </Field>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <Field label="Wedding date *">
-                <Input type="date" value={form.weddingDate} onChange={(e) => set('weddingDate', e.target.value)} className="rounded-none border-[#C9B896] bg-white/40" />
+                <Input type="date" value={form.weddingDate} onChange={(e) => set('weddingDate', e.target.value)} data-testid="wedding-date-input" className="rounded-none border-[#C9B896] bg-white/40" />
+              </Field>
+              <Field label="Muhurtham time" hint="Exact start time — countdown ticks to this moment">
+                <Input type="time" value={form.weddingTime} onChange={(e) => set('weddingTime', e.target.value)} data-testid="wedding-time-input" className="rounded-none border-[#C9B896] bg-white/40" />
               </Field>
               <Field label="Custom URL slug" hint={`/wedding/${form.slug || 'your-url'}`}>
                 <Input value={form.slug} onChange={(e) => set('slug', e.target.value)} placeholder="aanya-and-vikram" className="rounded-none border-[#C9B896] bg-white/40" />

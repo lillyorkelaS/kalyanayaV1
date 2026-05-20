@@ -39,6 +39,16 @@ User refinement (2026-05-19):
 - **Admin "Leads" tab** with status (new/contacted/converted/closed), inline WhatsApp/email links, CSV export, delete
 - **FastAPI reverse proxy** wired so `/api/*` works through the ingress
 
+### Added in this session (2026-05-20 — pt 2) — Scroll transitions + Muhurtham time
+- **Muhurtham time picker** in admin builder — added `weddingTime` field next to date. On save, combined into ISO datetime with explicit IST timezone (`+05:30`) so display is consistent regardless of server/viewer timezone.
+- **Banyan & Brass** and **Pichwai Bloom** hero now show "Muhurtham · 6:30 AM" prominently. Time displayed via `Intl.DateTimeFormat` with `timeZone: 'Asia/Kolkata'`. Hidden automatically when no time set.
+- **Countdown precision** — automatically uses muhurtham time. Works in all 10 templates since `new Date(weddingDate).getTime()` handles ISO datetimes natively. Older 8 templates' countdowns now tick to the exact muhurtham moment.
+- **Lenis smooth scroll** on all wedding pages via new `WeddingPageWrapper` component.
+- **Hero parallax** — hero image translates + scales subtly on scroll.
+- **Section reveal animations** — IntersectionObserver applies `data-revealed` to each `<section>` on viewport entry. Global CSS fades + slides + scales sections in (1.2s cubic-bezier). Direct children (countdown tiles, gallery items, event cards) stagger in via `kal-rise` keyframe. Respects `prefers-reduced-motion`.
+- **Zero per-template changes** — wrapper applies transitions globally, so future templates inherit automatically.
+
+
 ## Backlog (suggested next steps — awaiting user confirmation)
 Curated for "surprise me" mandate. Ordered by ROI for a SaaS wedding studio:
 

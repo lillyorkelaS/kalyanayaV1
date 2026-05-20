@@ -30,9 +30,25 @@ function useCountdown(target) {
     done: mounted && ms === 0,
   }
 }
-const fmtDate = (d) => { try { return new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) } catch { return d } }
-const fmtMonth = (d) => { try { return new Date(d).toLocaleDateString('en-US', { month: 'short' }).toUpperCase() } catch { return '' } }
-const fmtDay = (d) => { try { return new Date(d).getDate() } catch { return '' } }
+const IST = 'Asia/Kolkata'
+const fmtDate = (d) => { try { return new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric', timeZone: IST }) } catch { return d } }
+const fmtTime = (d) => {
+  try {
+    const dt = new Date(d)
+    if (isNaN(dt.getTime())) return ''
+    return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: IST })
+  } catch { return '' }
+}
+const hasTime = (d) => {
+  try {
+    const dt = new Date(d)
+    if (isNaN(dt.getTime())) return false
+    const istHHmm = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: IST })
+    return istHHmm !== '00:00'
+  } catch { return false }
+}
+const fmtMonth = (d) => { try { return new Date(d).toLocaleDateString('en-US', { month: 'short', timeZone: IST }).toUpperCase() } catch { return '' } }
+const fmtDay = (d) => { try { return new Date(d).toLocaleDateString('en-US', { day: 'numeric', timeZone: IST }) } catch { return '' } }
 
 // ===== SVG MOTIFS =====
 const Gopuram = ({ className = '', flip = false }) => (
@@ -164,9 +180,17 @@ export default function BanyanBrassTemplate({ wedding }) {
           {wedding.tagline && (
             <p className="mt-8 text-[#FBF4E6]/90 italic text-lg md:text-xl max-w-2xl mx-auto">"{wedding.tagline}"</p>
           )}
-          <div className="mt-10 inline-flex items-center gap-4 px-8 py-3 border border-[#B8860B] text-[#B8860B]">
-            <Calendar size={14} />
-            <span className="tracking-[0.3em] text-xs md:text-sm uppercase">{fmtDate(wedding.weddingDate)}</span>
+          <div className="mt-10 inline-flex flex-col items-center gap-2 px-8 py-4 border border-[#B8860B] text-[#B8860B]">
+            <div className="flex items-center gap-3">
+              <Calendar size={14} />
+              <span className="tracking-[0.3em] text-xs md:text-sm uppercase">{fmtDate(wedding.weddingDate)}</span>
+            </div>
+            {hasTime(wedding.weddingDate) && (
+              <div className="flex items-center gap-2 text-[#FBF4E6]">
+                <span className="text-[10px] tracking-[0.3em] uppercase text-[#B8860B]">Muhurtham</span>
+                <span className="font-serif italic text-base">{fmtTime(wedding.weddingDate)}</span>
+              </div>
+            )}
           </div>
         </motion.div>
 

@@ -1,4 +1,5 @@
 import { headers } from 'next/headers'
+import WeddingPageWrapper from '@/components/WeddingPageWrapper'
 import MoonveilTemplate from '@/components/templates/Moonveil'
 import RoyalHeritageTemplate from '@/components/templates/RoyalHeritage'
 import EternalEditTemplate from '@/components/templates/EternalEdit'
@@ -67,5 +68,9 @@ export default async function WeddingPage({ params }) {
     )
   }
   const Template = TEMPLATES[w.template] || MoonveilTemplate
-  return <Template wedding={w} />
+  return (
+    <WeddingPageWrapper>
+      <Template wedding={w} />
+    </WeddingPageWrapper>
+  )
 }
