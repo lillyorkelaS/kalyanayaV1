@@ -13,14 +13,16 @@ import ContactModal, { whatsappUrl } from '@/components/ContactModal'
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1756190564669-215843660e93'
 const TEMPLATE_IMGS = [
-  'https://images.unsplash.com/photo-1767955694884-d4bf352c23c2',
-  'https://images.unsplash.com/photo-1769500804089-b91e952710a4',
-  'https://images.pexels.com/photos/29497172/pexels-photo-29497172.jpeg',
-  'https://images.unsplash.com/photo-1708077809012-4740dd43bd53',
-  'https://images.unsplash.com/photo-1584242353192-7a1df2e855d8',
-  'https://images.unsplash.com/photo-1519741497674-611481863552',
-  'https://images.unsplash.com/photo-1604608672516-f1b9b1d1ce4f',
-  'https://images.unsplash.com/photo-1519225421980-715cb0215aed',
+  'https://images.unsplash.com/photo-1767955694884-d4bf352c23c2?w=900&q=80',
+  'https://images.unsplash.com/photo-1769500804089-b91e952710a4?w=900&q=80',
+  'https://images.pexels.com/photos/29497172/pexels-photo-29497172.jpeg?auto=compress&w=900',
+  'https://images.unsplash.com/photo-1708077809012-4740dd43bd53?w=900&q=80',
+  'https://images.unsplash.com/photo-1584242353192-7a1df2e855d8?w=900&q=80',
+  'https://images.unsplash.com/photo-1519741497674-611481863552?w=900&q=80',
+  'https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&w=900',
+  'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=900&q=80',
+  'https://images.pexels.com/photos/1444442/pexels-photo-1444442.jpeg?auto=compress&w=900',
+  'https://images.pexels.com/photos/1488315/pexels-photo-1488315.jpeg?auto=compress&w=900',
 ]
 const FEATURE_IMG_1 = 'https://images.pexels.com/photos/19590224/pexels-photo-19590224.jpeg'
 const FEATURE_IMG_2 = 'https://images.pexels.com/photos/35328204/pexels-photo-35328204.jpeg'
@@ -43,6 +45,8 @@ const templates = [
   { name: 'Sanctum Veil', tag: 'Christian · Sacred · Cathedral', img: TEMPLATE_IMGS[5], desc: 'Cathedral arches, dove, olive branches — ivory grace for a sacred union.' },
   { name: 'Marigold Bloom', tag: 'Festive · Vibrant · Joyful', img: TEMPLATE_IMGS[6], desc: 'Marigold yellow, emerald green, hanging toran — a colourful Indian celebration.' },
   { name: 'Pearl & Velvet', tag: 'Art Deco · Gatsby · Luxe', img: TEMPLATE_IMGS[7], desc: 'Champagne shimmer on emerald velvet — a Gatsby-era affair to remember.' },
+  { name: 'Banyan & Brass', tag: 'South Indian · Temple · Sacred', img: TEMPLATE_IMGS[8], desc: 'Sandalwood cream, temple maroon, brass gold — gopurams, kalashams and kolam for a sacred Tamil-Kerala union.' },
+  { name: 'Pichwai Bloom', tag: 'Pichwai · Indigo · Royal Floral', img: TEMPLATE_IMGS[9], desc: 'Deep indigo, mustard ochre, lotus pink — peacocks, lotuses and haveli arches in the Nathdwara tradition.' },
 ]
 
 const testimonials = [
@@ -53,7 +57,7 @@ const testimonials = [
 
 const pricing = [
   { name: 'Essential', price: '2,499', features: ['1 stunning template', 'Up to 100 guests', 'RSVP tracking', 'Photo gallery', '6 months hosting'], popular: false },
-  { name: 'Signature', price: '4,999', features: ['All 8 luxury templates', 'Unlimited guests', 'Advanced RSVP + meals', 'Unlimited photos', '1 year hosting', 'Custom URL slug', 'Password protection'], popular: true },
+  { name: 'Signature', price: '4,999', features: ['All 10 luxury templates', 'Unlimited guests', 'Advanced RSVP + meals', 'Unlimited photos', '1 year hosting', 'Custom URL slug', 'Password protection'], popular: true },
   { name: 'Heirloom', price: '7,000', features: ['Everything in Signature', 'Custom domain', 'Priority support', 'Video embeds', '3 years hosting', 'Gift registry link', 'Music integration'], popular: false },
 ]
 
@@ -224,11 +228,11 @@ export default function LandingPage() {
       <section id="templates" className="py-24 md:py-32 bg-[#F5EFE4]">
         <div className="container mx-auto px-4">
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="text-center mb-20">
-            <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-4">Eight signatures</div>
+            <div className="text-[#8B7355] tracking-[0.3em] text-xs uppercase mb-4">Ten signatures</div>
             <h2 className="font-serif font-light text-5xl md:text-6xl text-[#3A3226]">
               Choose a <em className="italic">canvas</em> worthy of your story.
             </h2>
-            <p className="mt-6 text-[#3A3226]/70 max-w-2xl mx-auto">Eight distinct moods — from minimal editorial to Christian cathedral, festive marigold to Gatsby art deco.</p>
+            <p className="mt-6 text-[#3A3226]/70 max-w-2xl mx-auto">Ten distinct moods — from minimal editorial to South Indian temple, Pichwai painting to Gatsby art deco.</p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {templates.map((t, i) => (

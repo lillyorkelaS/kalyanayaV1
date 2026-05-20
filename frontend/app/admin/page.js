@@ -511,6 +511,8 @@ function WeddingForm({ id, onCancel, onSaved }) {
                   { name: 'Sanctum Veil', tag: 'Christian · Sacred' },
                   { name: 'Marigold Bloom', tag: 'Festive · Vibrant' },
                   { name: 'Pearl & Velvet', tag: 'Art Deco · Gatsby' },
+                  { name: 'Banyan & Brass', tag: 'South Indian · Temple' },
+                  { name: 'Pichwai Bloom', tag: 'Pichwai · Royal Floral' },
                 ].map(t => (
                   <button key={t.name} onClick={() => set('template', t.name)}
                     className={`p-4 border text-left transition ${form.template === t.name ? 'border-[#3A3226] bg-[#3A3226] text-[#FDFBF7]' : 'border-[#C9B896] bg-white/40 text-[#3A3226] hover:border-[#3A3226]'}`}>
